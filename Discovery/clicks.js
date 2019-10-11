@@ -1,4 +1,5 @@
 var clickList = new Array();
+var timeStamps = new Array();
 var numOfClicks = 0;
 var cliekdType = '';
 var word = '';
@@ -20,6 +21,12 @@ chrome.storage.local.get('type', function(result){
       typing = result.type;
   }
 });
+chrome.storage.local.get('time', function(result){
+  if(result.time != null) {
+      timeStamps = result.time;
+  }
+});
+
 
 function clickOrigin(e){
     var target = e.target;
@@ -33,7 +40,7 @@ document.onkeypress = keyListener;
 
 function keyListener(e) {
 	var charType = e.key;
-	if(clickList[clickList.length-1] == 'User Input') {
+	if(clickList[clickList.length-1] == ('User Input')) {
 		word += String(e.key);
 	}
 }
@@ -43,8 +50,9 @@ function clickListener(e) {
   // cut = 0;
   clickedType = clickOrigin(e).tagType;
   numOfClicks++;
-  if(clickList[clickList.length-1] == 'User Input' && word != '') {
+  if(clickList[clickList.length-1] == ('User Input') && word != '') {
   	clickList.push('Typed: ' + word);
+    timeStamps.push(Date.now());
    	word = '';
   }
   if(typing == 1 && clickList.length > 0) {
@@ -66,9 +74,11 @@ function clickListener(e) {
     if(e.target.type == 'text') {
       if(e.target.placeholder == "Enter a value") {
         clickList.push(e.target.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.previousSibling.innerText);
+        timeStamps.push(Date.now());
       }
       else {
         clickList.push(e.target.placeholder);
+        timeStamps.push(Date.now());
       }
       clickedElement = e.target.id;
       // cut = 1;
@@ -86,6 +96,7 @@ function clickListener(e) {
         word = e.target.parentNode.parentNode.parentNode.previousSibling.innerText;
     }
     clickList.push(word);
+    timeStamps.push(Date.now());
     clickedElement = e.target.id;
     typing = 1;
     // cut = 1;
@@ -95,6 +106,7 @@ function clickListener(e) {
   // }
   alert(clickedType + " / " + "hi");
 	clickList.push(clickedElement);
+  timeStamps.push(Date.now());
   alert(clickList);
   //alert(clickedElement);
 	//alert(numOfClicks + ': ' + clickList);
@@ -104,6 +116,22 @@ function clickListener(e) {
 	});
   chrome.storage.local.set({ 'type': typing }, function(){
   });
+  chrome.storage.local.set({ 'time': timeStamps }, function() {
+  });
+
+  if(clickList.length == timeStamps.length) {
+    var finalList = new Array();
+    var i;
+    for (i = 0; i < clickList.length; i++) {
+      var str1 = '['+timeStamps[i]+'] ';
+      var str2 = clickList[i];
+      finalList.push(str1 + str2)
+    }
+    chrome.runtime.sendMessage(finalList);
+  }
+  else {
+    alert("Error");
+  }
 }
 
 function typeOfElement(e) {
