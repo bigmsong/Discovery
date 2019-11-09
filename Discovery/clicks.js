@@ -1,5 +1,7 @@
 var clickList = new Array();
 var timeStamps = new Array();
+var finalList = new Array();
+var urlList = new Array();
 var numOfClicks = 0;
 var cliekdType = '';
 var word = '';
@@ -24,6 +26,11 @@ chrome.storage.local.get('type', function(result){
 chrome.storage.local.get('time', function(result){
   if(result.time != null) {
       timeStamps = result.time;
+  }
+});
+chrome.storage.local.get('url', function(result){
+  if(result.url != null) {
+      urlList = result.url;
   }
 });
 
@@ -53,6 +60,7 @@ function clickListener(e) {
   if(clickList[clickList.length-1] == ('User Input') && word != '') {
   	clickList.push('Typed: ' + word);
     timeStamps.push(Date.now());
+    urlList.push(window.location.toString());
    	word = '';
   }
   if(typing == 1 && clickList.length > 0) {
@@ -75,10 +83,12 @@ function clickListener(e) {
       if(e.target.placeholder == "Enter a value") {
         clickList.push(e.target.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.previousSibling.innerText);
         timeStamps.push(Date.now());
+        urlList.push(window.location.toString());
       }
       else {
         clickList.push(e.target.placeholder);
         timeStamps.push(Date.now());
+        urlList.push(window.location.toString());
       }
       clickedElement = e.target.id;
       // cut = 1;
@@ -97,6 +107,7 @@ function clickListener(e) {
     }
     clickList.push(word);
     timeStamps.push(Date.now());
+    urlList.push(window.location.toString());
     clickedElement = e.target.id;
     typing = 1;
     // cut = 1;
@@ -104,9 +115,9 @@ function clickListener(e) {
   // if(cut == 0 && clickedElement.length > 20) {
   //   clickedElement = clickedElement.substring(0,10);
   // }
-  alert(clickedType + " / " + "hi");
 	clickList.push(clickedElement);
   timeStamps.push(Date.now());
+  urlList.push(window.location.toString());
   alert(clickList);
   //alert(clickedElement);
 	//alert(numOfClicks + ': ' + clickList);
@@ -118,21 +129,35 @@ function clickListener(e) {
   });
   chrome.storage.local.set({ 'time': timeStamps }, function() {
   });
+    chrome.storage.local.set({ 'url': urlList }, function(){
+  });
+
 
   if(clickList.length == timeStamps.length) {
-    var finalList = new Array();
+    finalList = new Array();
     var i;
     for (i = 0; i < clickList.length; i++) {
-      var str1 = '['+timeStamps[i]+'] ';
-      var str2 = clickList[i];
-      finalList.push(str1 + str2)
+      var str1 = '[' + timeStamps[i] + ',' + clickList[i] + ',' + urlList[i] + ']';
+      finalList.push(str1);
     }
-    chrome.runtime.sendMessage(finalList);
   }
   else {
+    alert(clickList.length);
+    alert(timeStamps.length);
     alert("Error");
   }
+
+
+  chrome.storage.local.set({ 'list': finalList }, function(){
+  });
 }
+
+chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
+  if((msg.from === 'popup')) {
+    chrome.runtime.sendMessage();
+  }
+});
+
 
 function typeOfElement(e) {
 
