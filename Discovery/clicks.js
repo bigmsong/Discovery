@@ -118,7 +118,7 @@ function clickListener(e) {
 	clickList.push(clickedElement);
   timeStamps.push(Date.now());
   urlList.push(window.location.toString());
-  alert(clickList);
+  //alert(clickList);
   //alert(clickedElement);
 	//alert(numOfClicks + ': ' + clickList);
 	chrome.storage.local.set({ 'num': numOfClicks }, function(){
